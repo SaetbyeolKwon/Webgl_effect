@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <title>three.js webgl - simple spheres visualization</title>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0">
+        <link type="text/css" rel="stylesheet" href="main.css">
+    </head>
+
+    <body>
+
+		<!-- <div id = "overlay">AETHER NY</div> -->
+
+        <script src="https://cdn.jsdelivr.net/npm/three@0.132.2/build/three.module.js" type="module"></script>
+        <script type="module">
+            import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.132.2/build/three.module.js';
+
+            let container, camera, scene, renderer;
+            const spheres = [];
+            let mouseX = 0, mouseY = 0;
+            let windowHalfX = window.innerWidth / 2;
+            let windowHalfY = window.innerHeight / 2;
+
+            document.addEventListener('mousemove', onDocumentMouseMove);
+            init();
+            animate();
+
+            function init() {
+                container = document.createElement('div');
+                document.body.appendChild(container);
+
+                camera = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 0.01, 100);
+                camera.position.z = 3;
+
+                scene = new THREE.Scene();
+                scene.background = new THREE.Color(0x090099);
+
+				//Lighting
+				const ambientLight = new THREE.AmbientLight(0xfffff, 0.8);  // Soft white light
+				scene.add(ambientLight);
+
+				const directionalLight = new THREE.DirectionalLight(0xffffff, 0.8);
+				directionalLight.position.set(0, 1, 0);  // Coming from the top
+				scene.add(directionalLight);
+
+				// const pointLight = new THREE.PointLight(0xffffff, 0.8);
+				// pointLight.position.set(mouseX, mouseY, -1);
+				// scene.add(pointLight);
+
+				 // Texture loading
+				const textureLoader = new THREE.TextureLoader();
+                const sphereTexture = textureLoader.load('./line.jpeg'); // Replace with your texture URL
+
+
+                const geometry = new THREE.SphereGeometry(0.14, 32, 16);
+                // const material = new THREE.MeshBasicMaterial({ color: 0xffffff });
+				const material = new THREE.MeshStandardMaterial({ map: sphereTexture });
+
+				// generte 30 spheres.
+                for (let i = 0; i < 30; i++) {
+                    const mesh = new THREE.Mesh(geometry, material);
+                    mesh.position.x = Math.random() * 10 - 5;
+                    mesh.position.y = Math.random() * 10 - 5;
+                    mesh.position.z = Math.random() * 10 - 5;
+                    mesh.scale.x = mesh.scale.y = mesh.scale.z = Math.random() * 3 + 1;
+                    scene.add(mesh);
+                    spheres.push(mesh);
+                }
+
+                renderer = new THREE.WebGLRenderer();
+                renderer.setPixelRatio(window.devicePixelRatio);
+                renderer.setSize(window.innerWidth, window.innerHeight);
+                container.appendChild(renderer.domElement);
+
+                window.addEventListener('resize', onWindowResize);
+            }
+
+            function onWindowResize() {
+                windowHalfX = window.innerWidth / 2;
+                windowHalfY = window.innerHeight / 2;
+                camera.aspect = window.innerWidth / window.innerHeight;
+                camera.updateProjectionMatrix();
+                renderer.setSize(window.innerWidth, window.innerHeight);
+            }
+
+            function onDocumentMouseMove(event) {
+                mouseX = (event.clientX - windowHalfX) / 300; //camera movement speed
+                mouseY = (event.clientY - windowHalfY) / 300;
+            }
+
+            function animate() {
+				requestAnimationFrame(animate);
+				const timer = 0.0001 * Date.now();
+				camera.position.x += (mouseX - camera.position.x) * .05;
+				camera.position.y += (-mouseY - camera.position.y) * .05;
+				camera.lookAt(scene.position);
+
+				spheres.forEach((sphere, index) => {
+					sphere.rotation.x += 0.01;
+					sphere.rotation.y += 0.01;  // Simple rotation on both X and Y axes
+					sphere.position.x = 2 * Math.cos(timer + index);
+					sphere.position.y = 2 * Math.sin(timer + index * 1.1);
+				});
+
+				renderer.render(scene, camera);
+			}
+
+        </script>
+    </body>
+</html>
